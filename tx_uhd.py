@@ -170,6 +170,9 @@ def main(config):
     usrp.set_rx_subdev_spec(rx_subdev_spec)
 
     # wait until GPS is locked, then align USRP time with global ref
+    
+    #TOD0
+    
     gl.sync_clock(usrp, log, min_sync_time=ic.min_gps_lock_time)
     gps_mon=gl.gpsdo_monitor(usrp, log, ic.gps_holdover_time)
 
@@ -203,7 +206,9 @@ def main(config):
             gpio_state=(gpio_state+1) % 2
 
             # check that GPS is still locked.
-            gps_mon.check()
+            
+            if ic.require_gps:
+                gps_mon.check()
 
         t0+=n.uint64(s.sweep_len_s)
 

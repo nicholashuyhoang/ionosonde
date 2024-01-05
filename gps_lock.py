@@ -6,7 +6,7 @@ import stuffr
 
 
 def check_lock(u, log=None, exit_if_not_locked=False):
-    locked=u.get_mboard_sensor("gps_locked").to_bool()
+    #locked=u.get_mboard_sensor("gps_locked").to_bool()
 
     with open("gps.log", "a") as f:
         f.write("%s lock=%d\n" % (stuffr.unix2datestr(time.time()), locked))
@@ -46,8 +46,8 @@ def sync_clock(u, log, min_sync_time=300.0):
             # reset t0 if not locked
             t0=time.time()
 
-    u.set_clock_source("gpsdo")
-    u.set_time_source("gpsdo")
+    u.set_clock_source("external")
+    u.set_time_source("external")
 
     lastt=u.get_time_last_pps()
     nextt=u.get_time_last_pps()
@@ -56,18 +56,19 @@ def sync_clock(u, log, min_sync_time=300.0):
         lastt=nextt
         nextt=u.get_time_last_pps()
     time.sleep(0.2)
-    u.set_time_next_pps(uhd.libpyuhd.types.time_spec(u.get_mboard_sensor("gps_time").to_int()+1))
+    t_next = time.time()+1
+    u.set_time_next_pps(uhd.libpyuhd.types.time_spec(int(t_next)))
 
-    log.log(str(u.get_mboard_sensor("gps_gpgga")))
-    log.log(str(u.get_mboard_sensor("gps_gprmc")))
+    #log.log(str(u.get_mboard_sensor("gps_gpgga")))
+    #log.log(str(u.get_mboard_sensor("gps_gprmc")))
 
     time.sleep(2.0)
 
     t_now=time.time()
     t_usrp=(u.get_time_now().get_full_secs()+u.get_time_now().get_frac_secs())
-    t_gpsdo=u.get_mboard_sensor("gps_time")
+    #t_gpsdo=u.get_mboard_sensor("gps_time")
     # these should be similar
-    print("pc clock %1.2f usrp clock %1.2f gpsdo %1.2f" % (t_now, t_usrp, t_gpsdo.to_int()))
+    print("pc clock %1.2f usrp clock %1.2f " % (t_now, t_usrp))
 
 
 class gpsdo_monitor:
@@ -98,8 +99,8 @@ class gpsdo_monitor:
 if __name__ == "__main__":
     import sys
     u = uhd.usrp.MultiUSRP("addr=%s" % (sys.argv[1]))
-    print(u.get_mboard_sensor("gps_gprmc"))
-    print(u.get_mboard_sensor("gps_gpgga"))
-    print(u.get_mboard_sensor("gps_time"))
+   # print(u.get_mboard_sensor("gps_gprmc"))
+    #print(u.get_mboard_sensor("gps_gpgga"))
+    #print(u.get_mboard_sensor("gps_time"))
     locked=check_lock(u, log=None, exit_if_not_locked=False)
     print("GPS locked %d" % (locked))
