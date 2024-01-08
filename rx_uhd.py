@@ -331,7 +331,16 @@ def main(ic):
     usrp.set_rx_subdev_spec(subdev_spec)
 
     # Synchronizing clock
-    gl.sync_clock(usrp, log, min_sync_time=ic.min_gps_lock_time)
+    
+    if ic.require_gps == False:
+        usrp.set_clock_source("external");
+        usrp.set_time_source("external");
+        time_at_last_pps = usrp.get_time_last_pps().get_real_secs()
+        while time_at_last_pps == usrp.get_time_last_pps().get_real_secs():
+            time.sleep(0.1)
+        usrp.set_time_next_pps(uhd.libyuhd.types.tem_spec(int(n.ceil(time.time()))))
+    else:   
+        gl.sync_clock(usrp, log, min_sync_time=ic.min_gps_lock_time)
 
     # figure out when to start the cycle.
     t_now=usrp.get_time_now().get_real_secs()
