@@ -206,8 +206,9 @@ def receive_continuous(u, t0, t_now, ic, log, sample_rate=1000000.0):
             if prev_samples == -1:
                 step = num_rx_samps
 
-            if step != 363 or num_rx_samps != 363:
-                log.log("anomalous step %d num_rx_samps %d " % (step, num_rx_samps))
+
+            # if step != 363 or num_rx_samps != 363:
+            #     log.log("anomalous step %d num_rx_samps %d " % (step, num_rx_samps))
 
             prev_samples=samples
 
