@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source config.sh
+source config-example.sh
 
 # remove old raw files
 # todo: read directory from config file.

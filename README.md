@@ -59,3 +59,6 @@ Installing UHD 3.15 with Python API enabled
 > make 
 
 > sudo make install
+
+# Virginia Tech F23_S24 Senior Design Project
+Contributors: Zachary Leffke, Carson Horne, Nicholas Hoang, Tommy Trinh, John Larus, Smail el Oumari, Ehite Anteneh
