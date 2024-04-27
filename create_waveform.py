@@ -148,7 +148,7 @@ def barker36(clen=10000,
                    128, 54, 160, 50, 133, 15, 62, 123, 30, 93],dtype=n.float32)
     barker36=n.exp(1j*2.0*n.pi*phi/P)
     n_ipp = int(n.floor(clen/ipp))
-    print(n_ipp)
+    print("n_ipp:", n_ipp)
     for i in range(n_ipp):
         if i%2 == 0:
             code[(i*ipp):(i*ipp+36)]=barker36
@@ -166,10 +166,40 @@ def barker13ipps(clen=10000,
     barker13=n.array([1, 1, 1, 1, 1, -1, -1, 1, 1, -1, 1, -1, 1], dtype=n.complex64)
     code = n.zeros(clen,dtype=n.complex64)#)n.array(n.exp(1j*n.random.rand(clen)*2*n.pi), dtype=n.complex64)
     n_ipp = int(n.floor(clen/ipp))
+    print("n_ipp", n_ipp)
     for i in range(n_ipp):
         code[(i*ipp):(i*ipp+13)]=barker13
     return(code)
+
+def barker13ipps2(clen=10000,
+                 ipp=1000):
+    barker13=n.array([1, 1, 1, 1, 1, -1, -1, 1, 1, -1, 1, -1, 1], dtype=n.complex64)
+    code = n.zeros(clen,dtype=n.complex64)#)n.array(n.exp(1j*n.random.rand(clen)*2*n.pi), dtype=n.complex64)
+    n_ipp = int(n.floor(clen/ipp))
+    print("n_ipp", n_ipp)
+    for i in range(n_ipp):
+        code[(i*ipp):(i*ipp+13)]=barker13
+    for i in range(n_ipp):
+        if i%2 == 0:
+            code[(i*ipp):(i*ipp+13)]=barker13
+        else:
+            code[(i*ipp):(i*ipp+13)]=barker13[::-1]
+    return(code)
+
+from scipy.signal import max_len_seq
+def mseq(clen=10000, ipp=1000, pulse_length=-1):
+    # code = max_len_seq(14)
+    code = n.array(n.exp(1j*max_len_seq(14)[0][0:clen]*2*n.pi), dtype=n.complex64)
+    print("mseq code length", len(code))
     
+    if pulse_length > 0:
+        # if a pulse length is specified, notch everything to zero after pulse
+        n_pulses=int(clen/ipp)
+        for i in range(n_pulses):
+            code[(i*ipp + pulse_length): ((i+1)*ipp)] = 0.0
+    print("code")
+    print(code)
+    return(code)
 
 #
 # lets use 0.1 s code cycle and coherence assumption
@@ -190,14 +220,19 @@ def waveform_to_file(station=0,
                      write_file=True):
 
     os.system("mkdir -p waveforms")
-    ofname='waveforms/code-l%d-b%d-%06df_%dk.bin' % (clen, oversample, station, int(bandwidth/1e3))
+    #ofname='waveforms/code-l%d-b%d-%06df_%dk.bin' % (clen, oversample, station, int(bandwidth/1e3))
+    ofname='waveforms/code-%s-l%d-b%d-%06df_%dk.bin' % (code_type, clen, oversample, station, int(bandwidth/1e3))
 
     if code_type=="prn":
         code=create_pseudo_random_code(clen=clen, seed=station, pulse_length=pulse_length, ipp=ipp)
     elif code_type=="barker13":
         code=barker13ipps(clen=clen,ipp=ipp)
+    elif code_type=="barker13_2":
+        code=barker13ipps2(clen=clen,ipp=ipp)
     elif code_type=="barker36":
         code=barker36(clen=clen,ipp=ipp)
+    elif code_type=="mseq":
+        code=mseq(clen=clen, ipp=ipp, pulse_length=pulse_length)
     else:
         code=create_prn_dft_code(clen=clen, seed=station)
         

@@ -59,7 +59,7 @@ def create_estimation_matrix(code, rmin=0, rmax=1000):
 
     r_cache = periodic_convolution_matrix(envelope=code, rmin=rmin, rmax=rmax)
     A = r_cache['A']
-    Ah = np.transpose(np.conjugate(A))
+    Ah = np.transpose(np.conjugate(A)) #Ah = A Hermitian?
     # least-squares estimate
     # B=(A^H A)^{-1}A^H
     B_cache = np.dot(np.linalg.inv(np.dot(Ah, A)), Ah)
@@ -78,23 +78,30 @@ def analyze_prc2(z,
                  cache=True,
                  gc_rem=False,
                  wfun=scipy.signal.tukey,
-                 gc=20,
+                 gc=0,
                  fft_filter=False,
                  time_variable_noise=False,
-                 cw_rem=False):
+                 cw_rem=False,
+                 blank=0):
 
+    print("code", code)
     an_len=len(z)
+    print('an_len', an_len, " Number of Samples")
     clen=len(code)
+    print('clen', clen, " Code Length")
     N = int(an_len / clen)
+    print('N', N, "Number of Transmit Pulses")
     res = np.zeros([N, n_ranges], dtype=np.complex64)
-
+    
     # use cached version of (A^HA)^{-1}A^H if it exists.
     cache_file="waveforms/cache-%d.h5" % (cache_idx)
 
     if os.path.exists(cache_file):
+        print('ping')
         with h5py.File(cache_file, "r") as hb:
             B=np.copy(hb["B"][()])
     else:
+        print('pong')
         r = create_estimation_matrix(code=code, rmax=n_ranges)
         B = r['B']
         with h5py.File(cache_file, "w") as hb:
@@ -117,6 +124,7 @@ def analyze_prc2(z,
         for i in np.arange(N):
             S+=np.abs(sf.fft(z[i, :]))**2.0
         S=np.sqrt(S/float(N))
+        
     for i in np.arange(N):
         # B=(A^H A)^{-1}A^H
         # B*z = (A^H A)^{-1}A^H*z = x_ml
@@ -127,6 +135,13 @@ def analyze_prc2(z,
         else:
             zw=z[i, :]
         res[i, :] = np.dot(B, zw)
+    
+    for i in np.arange(n_ranges):
+        if i < blank:
+            spec[:,i]=0.0
+            res[:,i]=0
+        else:
+            break
 
     if gc_rem:
         for i in range(gc, n_ranges):
@@ -140,15 +155,20 @@ def analyze_prc2(z,
     window=1.0  # wfun(N)
     # ignore first and last, where frequency transition occurs
     res[0, :]=0.0
+    res[1, :]=0.0 #also ignore second
+    res[2, :]=0.0 #and igonre 
     res[N-1, :]=0.0
-    for i in np.arange(n_ranges):
+    for i in np.arange(gc, n_ranges):
         spec[:, i] = np.fft.fftshift(np.fft.fft(
             window * res[:, i]
         ))
+        
 
     spec_snr=np.zeros(spec.shape, dtype=np.float32)
 
     if spec_rfi_rem:
+        #N = Number of Transmit Pulses
+        #n_ranges = Number of Range Gates
         median_spec = np.zeros(N, dtype=np.complex64)
         noise_floor = np.zeros(N, dtype=np.float32)
         spec_std = np.zeros(N, dtype=np.float32)

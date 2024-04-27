@@ -111,6 +111,10 @@ class iono_config:
         self.max_plot_range=float(json.loads(c["config"]["max_plot_range"]))
 
         self.gps_holdover_time=float(json.loads(c["config"]["gps_holdover_time"]))
+        
+        self.gc_rem=bool(json.loads(c["config"]["gc_rem"]))
+        self.gc=int(json.loads(c["config"]["gc"]))
+
 
         self.max_plot_dB=float(json.loads(c["config"]["max_plot_dB"]))
 
@@ -125,6 +129,13 @@ class iono_config:
         self.ionogram_dirname=json.loads(c["config"]["ionogram_dirname"])
 
         self.reflected_power_cal_dB=json.loads(c["config"]["reflected_power_cal_dB"])
+        self.color_map=json.loads(c["config"]["color_map"])
+        self.rfi_rem=bool(json.loads(c["config"]["rfi_rem"]))
+        self.spec_rfi_rem=bool(json.loads(c["config"]["spec_rfi_rem"]))
+        self.cw_rem=bool(json.loads(c["config"]["cw_rem"]))
+        self.fft_filter=bool(json.loads(c["config"]["fft_filter"]))
+        
+
 
         try:
             os.mkdir(self.ionogram_path)

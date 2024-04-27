@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source config-example.sh
+source config.sh
 
 # remove old raw files
 # todo: read directory from config file.
@@ -73,7 +73,7 @@ wait_until() {
 while true;
 do
     python3 analyze_ionograms.py --config=$IONO_CONFIG &
-    python3 analyze_ionograms.py --config=$IONO_CONFIG_OBLIQUE &
+    # python3 analyze_ionograms.py --config=$IONO_CONFIG_OBLIQUE &
 #     python3 overview_plots.py $IONO_CONFIG
 
     wait

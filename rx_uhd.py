@@ -82,8 +82,19 @@ def lpf(dec=10, filter_len=4):
     wfun=n.array(ss.hann(len(m))*n.sin(om0*(m+1e-6))/(n.pi*(m+1e-6)), dtype=n.complex64)
     return(wfun)
 
+def write_to_file(recv_buffer, fname, log, dec=1):
+    print("writing to file %s" % (fname), "decimation:", dec)
 
-def write_to_file(recv_buffer, fname, log, dec=10):
+    
+    
+
+    # rectangular impulse response. better for range resolution,
+    # but not very good for frequency selectivity.
+    obuf=stuffr.decimate(recv_buffer,dec=dec)
+    obuf.tofile(fname)
+
+
+def write_to_file_original(recv_buffer, fname, log, dec=10):
     print("writing to file %s" % (fname))
 
     # this is a better low pass filter.
@@ -206,9 +217,8 @@ def receive_continuous(u, t0, t_now, ic, log, sample_rate=1000000.0):
             if prev_samples == -1:
                 step = num_rx_samps
 
-
-            # if step != 363 or num_rx_samps != 363:
-            #     log.log("anomalous step %d num_rx_samps %d " % (step, num_rx_samps))
+            if step != 363 or num_rx_samps != 363:
+                log.log("anomalous step %d num_rx_samps %d " % (step, num_rx_samps))
 
             prev_samples=samples
 
@@ -227,7 +237,7 @@ def receive_continuous(u, t0, t_now, ic, log, sample_rate=1000000.0):
                 # todo: pass decimtaiton option, and pass transmit bandwidth
                 wr_thread=threading.Thread(target=write_to_file,
                                            args=(wr_buff, "%s/raw-%d-%03d.bin"
-                                                          % (ic.data_dir, cycle_t0, freq_num), log))
+                                                          % (ic.data_dir, cycle_t0, freq_num), log, ic.dec))
                 wr_thread.start()
                 freq_num += 1
 
@@ -381,6 +391,6 @@ if __name__ == "__main__":
     ic = iono_config.get_config(
         config=op.config,
         write_waveforms=True,
-        quiet=not op.verbose
+        quiet=op.verbose
     )
     main(ic)
